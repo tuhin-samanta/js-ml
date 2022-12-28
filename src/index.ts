@@ -18,3 +18,11 @@ for (let i = 0; i < 20; i++) {
 
   canvasUtil.circle(x, y, 4).bg("white").update();
 }
+
+canvasUtil
+  .line(0, 0)
+  .to(100, 100)
+  .to(100, 150)
+  .withAngle(90, 120, { color: "green" })
+  .withAngle(30, 50)
+  .draw();
