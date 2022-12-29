@@ -1,11 +1,14 @@
 import type {
   LineToFieldOptions,
   LineToPointsProperties,
+  LineDetailOptions,
 } from "../../type/index.js";
 
-import math from "../fancyMath.js";
+import math from "./utils/fancyMath.js";
 
 export default class {
+  #points = [];
+
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly ctx: CanvasRenderingContext2D,
@@ -119,13 +122,6 @@ export default class {
           const rightAngleX = lineStartX;
           const rightAngleY = lineEndY;
 
-          ctx.beginPath();
-          ctx.moveTo(lineEndX, lineEndY);
-          ctx.strokeStyle = "green";
-          ctx.lineTo(rightAngleX, rightAngleY);
-          ctx.stroke();
-          ctx.closePath();
-
           const hypp = _this.pointDistance(
             lineStartX,
             lineStartY,
@@ -185,6 +181,15 @@ export default class {
       width(value: number) {
         width = value;
         return this;
+      },
+
+      showDetail(options: LineDetailOptions = {}) {
+        const data = {
+          showPoint: options.showPoint ?? true,
+          showPointName: options.showPointName ?? true,
+          showDistance: options.showDistance ?? true,
+          showAngle: options.showAngle ?? true,
+        };
       },
 
       draw() {

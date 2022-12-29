@@ -10,3 +10,10 @@ export interface LineToPointsProperties extends LineToFieldOptions {
   y: number;
   angle?: number;
 }
+
+export type LineDetailOptions = {
+  showPoint?: boolean;
+  showPointName?: boolean;
+  showDistance?: boolean;
+  showAngle?: boolean;
+};
