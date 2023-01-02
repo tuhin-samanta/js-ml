@@ -1,11 +1,29 @@
 type EventName = string;
 type ListenerID = string;
 type EventListenersMap = { [name: string]: number[] };
+type EventOptions = { global?: boolean };
+type GlobalListenStorage = {
+  listeners: (Function | null)[];
+  eventListenersMap: EventListenersMap;
+  onceMap: number[];
+};
 
-const events = function () {
-  const listeners: (Function | null)[] = [];
-  const eventListenersMap: EventListenersMap = {};
-  const onceMap: number[] = [];
+const globalListenStorage: GlobalListenStorage = {
+  listeners: [],
+  eventListenersMap: {},
+  onceMap: [],
+};
+
+const events = function (options: EventOptions = {}) {
+  const useGlobals = options.global ? true : false;
+
+  const listeners: (Function | null)[] = useGlobals
+    ? globalListenStorage.listeners
+    : [];
+  const eventListenersMap: EventListenersMap = useGlobals
+    ? globalListenStorage.eventListenersMap
+    : {};
+  const onceMap: number[] = useGlobals ? globalListenStorage.onceMap : [];
 
   let errEventName = "error";
 
@@ -69,11 +87,15 @@ const events = function () {
             });
           }
         });
-        this.removeListener(onceArr);
+        this.removeListeners(onceArr);
       }
     },
 
-    removeListener(listenerID: ListenerID | ListenerID[]) {
+    removeListener(listenerID: ListenerID) {
+      return this.removeListeners(listenerID);
+    },
+
+    removeListeners(listenerID: ListenerID | ListenerID[]) {
       let ids = Array.isArray(listenerID) ? listenerID : [listenerID];
       ids.forEach((id) => {
         const [listenerIndexStr, ...eventNameArr] = id.split("@");
