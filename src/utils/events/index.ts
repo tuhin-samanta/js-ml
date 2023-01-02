@@ -82,20 +82,20 @@ const events = function (options: EventOptions = {}) {
           if (typeof fn === "function") {
             setTimeout(async () => {
               try {
-                await fn();
+                await fn(...args);
               } catch (err) {}
             });
           }
         });
-        this.removeListeners(onceArr);
+        this.removeAllListenersById(onceArr);
       }
     },
 
-    removeListener(listenerID: ListenerID) {
-      return this.removeListeners(listenerID);
+    removeListenerById(listenerID: ListenerID) {
+      return this.removeAllListenersById(listenerID);
     },
 
-    removeListeners(listenerID: ListenerID | ListenerID[]) {
+    removeAllListenersById(listenerID: ListenerID | ListenerID[]) {
       let ids = Array.isArray(listenerID) ? listenerID : [listenerID];
       ids.forEach((id) => {
         const [listenerIndexStr, ...eventNameArr] = id.split("@");
@@ -117,9 +117,21 @@ const events = function (options: EventOptions = {}) {
       });
     },
 
-    remove(eventID: string): void {},
+    removeEventListener(eventName: EventName, listener: Function) {
+      const index = listeners.indexOf(listener);
+      if (index !== -1) {
+        let evtName = `${index}@${eventName}`;
+        this.removeListenerById(evtName);
+      }
+    },
 
-    removeAll(eventName: string): void {},
+    removeAllEventListeners(eventName: string): void {
+      let evtIds = eventListenersMap[eventName];
+      if (evtIds && Array.isArray(evtIds)) {
+        let handlers = evtIds.map((id) => `${id}@${eventName}`);
+        this.removeAllListenersById(handlers);
+      }
+    },
   };
 };
 
