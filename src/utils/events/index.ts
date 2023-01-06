@@ -14,6 +14,12 @@ const globalListenStorage: GlobalListenStorage = {
   onceMap: [],
 };
 
+/**
+ * Returns the event listener object
+ *
+ * @param options (Object| Optional) An optional object for additional configuration. For example {global: true}, it will use the global event storage which is helpful for multi component apps to emit and listen events from different component.
+ * @returns (Object) Event listener
+ */
 const events = function (options: EventOptions = {}) {
   const useGlobals = options.global ? true : false;
 
@@ -27,6 +33,14 @@ const events = function (options: EventOptions = {}) {
 
   let errEventName = "error";
 
+  /**
+   * Stores the events and the listeners also determines whether the method will be called once
+   *
+   * @param eventName (String) The name of the event
+   * @param callBack (Function) The callback function
+   * @param once (Boolean | Optional) Default false, it determines whether the method will be called once
+   * @returns (String) Event Id
+   */
   const execOnAndOnce = function (
     eventName: string,
     callBack: Function,
@@ -48,7 +62,7 @@ const events = function (options: EventOptions = {}) {
     cbs.push(listenerID);
     eventListenersMap[eventName] = cbs;
 
-    let evtListener = `${listenerID}@${errEventName}`;
+    let evtListener = `${listenerID}@${eventName}`;
 
     if (once) {
       onceMap.push(listenerID);
@@ -61,14 +75,35 @@ const events = function (options: EventOptions = {}) {
       errEventName = name;
     },
 
-    once(eventName: string, callBack: Function) {
-      return execOnAndOnce(eventName, callBack, true);
+    /**
+     *
+     * @param eventName
+     * @param callBack
+     * @returns
+     */
+    once(eventName: string, callBack: Function): ListenerID {
+      let id = execOnAndOnce(eventName, callBack, true);
+      this.emit("newListener", eventName, callBack);
+      return id;
     },
 
+    /**
+     *
+     * @param eventName
+     * @param callBack
+     * @returns
+     */
     on(eventName: string, callBack: Function): ListenerID {
-      return execOnAndOnce(eventName, callBack, false);
+      let id = execOnAndOnce(eventName, callBack, false);
+      this.emit("newListener", eventName, callBack);
+      return id;
     },
 
+    /**
+     *
+     * @param eventName
+     * @param args
+     */
     emit(eventName: string, ...args: unknown[]): void {
       let evIds = eventListenersMap[eventName];
       if (evIds && Array.isArray(evIds)) {
@@ -83,7 +118,14 @@ const events = function (options: EventOptions = {}) {
             setTimeout(async () => {
               try {
                 await fn(...args);
-              } catch (err) {}
+              } catch (err) {
+                let errListeners = eventListenersMap[errEventName];
+                if (Array.isArray(errListeners) && errListeners.length > 0) {
+                  this.emit(errEventName, err);
+                } else {
+                  throw err;
+                }
+              }
             });
           }
         });
@@ -91,21 +133,25 @@ const events = function (options: EventOptions = {}) {
       }
     },
 
+    /**
+     *
+     * @param listenerID
+     * @returns
+     */
     removeListenerById(listenerID: ListenerID) {
       return this.removeAllListenersById(listenerID);
     },
 
+    /**
+     *
+     * @param listenerID
+     */
     removeAllListenersById(listenerID: ListenerID | ListenerID[]) {
       let ids = Array.isArray(listenerID) ? listenerID : [listenerID];
       ids.forEach((id) => {
         const [listenerIndexStr, ...eventNameArr] = id.split("@");
         const listenerIndex = Number(listenerIndexStr);
         const eventName = eventNameArr.join("@");
-
-        listeners[listenerIndex] && (listeners[listenerIndex] = null);
-
-        onceMap.includes(listenerIndex) &&
-          onceMap.splice(onceMap.indexOf(listenerIndex), 1);
 
         Array.isArray(eventListenersMap[eventName]) &&
           eventListenersMap[eventName].length > 0 &&
@@ -114,9 +160,29 @@ const events = function (options: EventOptions = {}) {
             eventListenersMap[eventName].indexOf(listenerIndex),
             1
           );
+
+        listeners[listenerIndex] && (listeners[listenerIndex] = null);
+
+        onceMap.includes(listenerIndex) &&
+          onceMap.splice(onceMap.indexOf(listenerIndex), 1);
       });
     },
 
+    /**
+     *
+     * @param eventName
+     * @param listener
+     * @returns
+     */
+    off(eventName: EventName, listener: Function) {
+      return this.removeEventListener(eventName, listener);
+    },
+
+    /**
+     *
+     * @param eventName
+     * @param listener
+     */
     removeEventListener(eventName: EventName, listener: Function) {
       const index = listeners.indexOf(listener);
       if (index !== -1) {
@@ -125,6 +191,10 @@ const events = function (options: EventOptions = {}) {
       }
     },
 
+    /**
+     *
+     * @param eventName
+     */
     removeAllEventListeners(eventName: string): void {
       let evtIds = eventListenersMap[eventName];
       if (evtIds && Array.isArray(evtIds)) {
@@ -134,5 +204,7 @@ const events = function (options: EventOptions = {}) {
     },
   };
 };
+
+//started testing
 
 export default events;
