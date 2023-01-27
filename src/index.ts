@@ -1,16 +1,17 @@
-import CanvasUtils from "./utils/canvas/Main.js";
-import math from "./utils/canvas/utils/fancyMath.js";
+//import CanvasUtils from "./utils/canvas/Main.js";
 
-const canvas = document.createElement("canvas");
-document.body.appendChild(canvas);
-const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+// import math from "./utils/canvas/utils/fancyMath.js";
 
-canvas.height = 500;
-canvas.width = 500;
+// const canvas = document.createElement("canvas");
+// document.body.appendChild(canvas);
+// const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-canvas.style.backgroundColor = "#140E4D";
+// canvas.height = 500;
+// canvas.width = 500;
 
-const canvasUtil = new CanvasUtils(canvas, ctx);
+// canvas.style.backgroundColor = "#140E4D";
+
+// const canvasUtil = new CanvasUtils(canvas, ctx);
 
 // for (let i = 0; i < 20; i++) {
 //   const x = math.randomBetween(0, canvas.width);

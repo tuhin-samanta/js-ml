@@ -17,3 +17,5 @@ export type LineDetailOptions = {
   showDistance?: boolean;
   showAngle?: boolean;
 };
+
+export type graphType = "default" | "standard" | "custom";

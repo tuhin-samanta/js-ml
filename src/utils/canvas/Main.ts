@@ -2,12 +2,15 @@ import type {
   LineToFieldOptions,
   LineToPointsProperties,
   LineDetailOptions,
+  graphType,
 } from "../../type/index.js";
 
 import math from "./utils/fancyMath.js";
 
 export default class {
   #points = [];
+  #graphType: graphType = "default";
+  #center: { x: number; y: number } = { x: 0, y: 0 };
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -16,6 +19,23 @@ export default class {
     private readonly defaultElementBackgroundColor: string = "white",
     private readonly defaultLineWidth: number = 2
   ) {}
+
+  setType(type: graphType) {
+    this.#graphType = type;
+
+    if (type === "standard") {
+      this.#center.x = this.canvas.width / 2;
+      this.#center.y = this.canvas.height / 2;
+    }
+  }
+
+  #point(x: number, y: number) {
+    if (this.#graphType !== "default") {
+      x = this.#center.x + x;
+      y = this.#center.y + y;
+    }
+    return { x, y };
+  }
 
   degree(val: number) {
     return (Math.PI / 180) * val;
@@ -61,6 +81,15 @@ export default class {
   }
 
   pointDistance(x1: number, y1: number, x2: number, y2: number) {
+    const point1 = this.#point(x1, y1);
+    const point2 = this.#point(x2, y2);
+
+    x1 = point1.x;
+    y1 = point1.y;
+
+    x2 = point2.x;
+    y2 = point2.y;
+
     return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   }
 
@@ -73,6 +102,24 @@ export default class {
     const _this = this;
     const canvas = this.canvas;
     const ctx = this.ctx;
+
+    const point = this.#point(startX, startY);
+    startX = point.x;
+    startY = point.y;
+
+    if (typeof endX === "number" || typeof endY === "number") {
+      if (!(typeof endX === "number" && typeof endY === "number")) {
+        throw new Error(
+          `Once providing value for endX or endY both should contain a numaric value, provided values are ${JSON.stringify(
+            { endX, endY }
+          )}`
+        );
+      }
+
+      const point = this.#point(endX, endY);
+      endX = point.x;
+      endY = point.y;
+    }
 
     let width = this.defaultLineWidth;
     let color = this.defaultElementBorderColor;
@@ -91,6 +138,10 @@ export default class {
 
     return {
       to(x: number, y: number, options: LineToFieldOptions | null = {}) {
+        const p = _this.#point(x, y);
+        x = p.x;
+        y = p.y;
+
         let point = { x, y, ...(options ?? {}) };
         toPoints.push(point);
         return this;
@@ -227,6 +278,10 @@ export default class {
   circle(startX: number, startY: number, radius: number) {
     const _this = this;
     const ctx = this.ctx;
+
+    const p = _this.#point(startX, startY);
+    startX = p.x;
+    startY = p.y;
 
     let bg: null | string = null;
     let stroke: null | string = this.defaultElementBorderColor;
