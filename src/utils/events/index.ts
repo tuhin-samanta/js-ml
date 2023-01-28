@@ -76,6 +76,7 @@ const events = function (options: EventOptions = {}) {
     },
 
     /**
+     * Register event and the listener, the listener will be executed
      *
      * @param eventName
      * @param callBack
@@ -206,5 +207,15 @@ const events = function (options: EventOptions = {}) {
 };
 
 //started testing
+
+let ev = events();
+
+ev.on("test", (arg: any) => {
+  console.log(`Called from ${arg}`);
+});
+
+setTimeout(() => {
+  ev.emit("test", "from set time out");
+});
 
 export default events;
